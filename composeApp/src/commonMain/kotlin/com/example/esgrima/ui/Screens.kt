@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +54,7 @@ fun TiradoresScreen() {
                             val nuevo = Tirador(
                                 firstName = nombre, lastName = "", club = club,
                                 gender = "X", age = 18, federateNumber = (0..999999).random(),
-                                country = "ESP", modality = "Espada"
+                                country = "ESP", modality = Repository.datos.arma
                             )
                             Repository.datos.tiradores.add(nuevo)
                             lista = Repository.datos.tiradores.toList()
@@ -122,7 +123,7 @@ fun ArbitrosScreen() {
                         val nuevo = Arbitro(
                             firstName = nombre, lastName = "", gender = "X", 
                             age = 30, federateNumber = numLicencia, club = "FEDERACIÓN",
-                            country = "ESP", modality = listOf("Espada")
+                            country = "ESP", modality = listOf(Repository.datos.arma)
                         )
                         Repository.datos.arbitros.add(nuevo)
                         lista = Repository.datos.arbitros.toList()
@@ -147,6 +148,55 @@ fun ArbitrosScreen() {
                             Text("Licencia: ${a.federateNumber}", style = MaterialTheme.typography.caption)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AjustesScreen() {
+    var nombre by remember { mutableStateOf(Repository.datos.nombre) }
+    var entidad by remember { mutableStateOf(Repository.datos.entidadOrganizadora) }
+    var lugar by remember { mutableStateOf(Repository.datos.lugar) }
+    var fecha by remember { mutableStateOf(Repository.datos.fecha) }
+    val armas = listOf("Espada", "Florete", "Sable")
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(Modifier.padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState())) {
+        Text("Configuración de la Competición", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(16.dp))
+
+        Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
+            Column(Modifier.padding(16.dp)) {
+                OutlinedTextField(value = nombre, onValueChange = { nombre = it; Repository.datos.nombre = it }, label = { Text("Nombre del Torneo") }, modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = entidad, onValueChange = { entidad = it; Repository.datos.entidadOrganizadora = it }, label = { Text("Entidad Organizadora") }, modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = lugar, onValueChange = { lugar = it; Repository.datos.lugar = it }, label = { Text("Lugar") }, modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = fecha, onValueChange = { fecha = it; Repository.datos.fecha = it }, label = { Text("Fecha (AAAA-MM-DD)") }, modifier = Modifier.fillMaxWidth())
+                
+                Spacer(Modifier.height(16.dp))
+                Text("Arma de la competición", style = MaterialTheme.typography.subtitle2)
+                
+                Box {
+                    OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text(Repository.datos.arma)
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        armas.forEach { arma ->
+                            DropdownMenuItem(onClick = {
+                                Repository.datos.arma = arma
+                                expanded = false
+                            }) { Text(arma) }
+                        }
+                    }
+                }
+                
+                Spacer(Modifier.height(24.dp))
+                Button(onClick = { Repository.guardar() }, modifier = Modifier.fillMaxWidth()) {
+                    Text("GUARDAR CONFIGURACIÓN")
                 }
             }
         }
@@ -182,7 +232,7 @@ fun PoulesScreen() {
                     Text("POULE ${p.numero} - ${p.pista}", color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold)
                     Divider(Modifier.padding(vertical = 8.dp))
                     p.asaltos.forEach { asalto ->
-                        RowAsalto(asalto) { ranking = Repository.calcularRanking() }
+                        RowAsalto(asalto, limite = 5) { ranking = Repository.calcularRanking() }
                     }
                 }
             }
@@ -241,7 +291,7 @@ fun TablonScreen() {
                             fontSize = 12.sp
                         )
                         Spacer(Modifier.height(8.dp))
-                        RowAsalto(a) {}
+                        RowAsalto(a, limite = 15) {}
                     }
                 }
             }
@@ -250,7 +300,7 @@ fun TablonScreen() {
 }
 
 @Composable
-fun RowAsalto(asalto: Asalto, onUpdate: () -> Unit) {
+fun RowAsalto(asalto: Asalto, limite: Int, onUpdate: () -> Unit) {
     var t1 by remember { mutableStateOf(asalto.tocados1.toString()) }
     var t2 by remember { mutableStateOf(asalto.tocados2.toString()) }
 
@@ -262,7 +312,7 @@ fun RowAsalto(asalto: Asalto, onUpdate: () -> Unit) {
             onValueChange = { 
                 t1 = it
                 asalto.tocados1 = it.toIntOrNull() ?: 0
-                asalto.finalizado = true
+                if (asalto.tocados1 >= limite) asalto.finalizado = true
                 onUpdate() 
             },
             modifier = Modifier.width(55.dp),
@@ -277,7 +327,7 @@ fun RowAsalto(asalto: Asalto, onUpdate: () -> Unit) {
             onValueChange = { 
                 t2 = it
                 asalto.tocados2 = it.toIntOrNull() ?: 0
-                asalto.finalizado = true
+                if (asalto.tocados2 >= limite) asalto.finalizado = true
                 onUpdate() 
             },
             modifier = Modifier.width(55.dp),

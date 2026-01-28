@@ -85,6 +85,10 @@ data class Poule(
 @Serializable
 data class CompeticionData(
     var nombre: String = "Torneo Esgrima 2026",
+    var entidadOrganizadora: String = "Federación Española de Esgrima",
+    var fecha: String = "2026-01-29",
+    var lugar: String = "Polideportivo Municipal",
+    var arma: String = "Espada",
     val tiradores: MutableList<Tirador> = mutableListOf(),
     val arbitros: MutableList<Arbitro> = mutableListOf(),
     val poules: MutableList<Poule> = mutableListOf(),
