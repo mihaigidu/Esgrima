@@ -9,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +20,7 @@ import com.example.esgrima.data.Repository
 import com.example.esgrima.model.*
 
 @Composable
-fun TiradoresScreen() {
+fun TiradoresScreen(canEdit: Boolean = true) {
     var nombre by remember { mutableStateOf("") }
     var club by remember { mutableStateOf("") }
     var lista by remember { mutableStateOf(Repository.datos.tiradores.toList()) }
@@ -32,45 +31,47 @@ fun TiradoresScreen() {
         
         Spacer(Modifier.height(16.dp))
         
-        Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
-            Column(Modifier.padding(16.dp)) {
-                OutlinedTextField(
-                    value = nombre, 
-                    onValueChange = { nombre = it }, 
-                    label = { Text("Nombre Completo") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = club, 
-                    onValueChange = { club = it }, 
-                    label = { Text("Club / Entidad") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(12.dp))
-                Button(
-                    onClick = {
-                        if (nombre.isNotBlank()) {
-                            val nuevo = Tirador(
-                                firstName = nombre, lastName = "", club = club,
-                                gender = "X", age = 18, federateNumber = (0..999999).random(),
-                                country = "ESP", modality = Repository.datos.arma
-                            )
-                            Repository.datos.tiradores.add(nuevo)
-                            lista = Repository.datos.tiradores.toList()
-                            nombre = ""; club = ""
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(48.dp)
-                ) {
-                    Icon(Icons.Default.Add, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("INSCRIBIR TIRADOR")
+        // SOLO SE MUESTRA EL FORMULARIO SI TIENE PERMISOS (ADMIN O INSCRIPCIÓN PÚBLICA)
+        if (canEdit) {
+            Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = nombre, 
+                        onValueChange = { nombre = it }, 
+                        label = { Text("Nombre Completo") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = club, 
+                        onValueChange = { club = it }, 
+                        label = { Text("Club / Entidad") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = {
+                            if (nombre.isNotBlank()) {
+                                val nuevo = Tirador(
+                                    firstName = nombre, lastName = "", club = club,
+                                    gender = "X", age = 18, federateNumber = (0..999999).random(),
+                                    country = "ESP", modality = Repository.datos.arma
+                                )
+                                Repository.datos.tiradores.add(nuevo)
+                                lista = Repository.datos.tiradores.toList()
+                                nombre = ""; club = ""
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) {
+                        Icon(Icons.Default.Add, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("INSCRIBIR TIRADOR")
+                    }
                 }
             }
+            Spacer(Modifier.height(16.dp))
         }
-
-        Spacer(Modifier.height(16.dp))
 
         LazyColumn(Modifier.weight(1f)) {
             items(lista) { t ->
@@ -94,7 +95,7 @@ fun TiradoresScreen() {
 }
 
 @Composable
-fun ArbitrosScreen() {
+fun ArbitrosScreen(canEdit: Boolean = true) {
     var nombre by remember { mutableStateOf("") }
     var licencia by remember { mutableStateOf("") }
     var lista by remember { mutableStateOf(Repository.datos.arbitros.toList()) }
@@ -103,41 +104,43 @@ fun ArbitrosScreen() {
         Text("Gestión de Árbitros", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
-        Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
-            Column(Modifier.padding(16.dp)) {
-                OutlinedTextField(
-                    value = nombre, onValueChange = { nombre = it }, 
-                    label = { Text("Nombre del Árbitro") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = licencia, onValueChange = { licencia = it }, 
-                    label = { Text("Número de Licencia") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(12.dp))
-                Button(onClick = {
-                    if (nombre.isNotBlank()) {
-                        val numLicencia = licencia.toIntOrNull() ?: (0..99999).random()
-                        val nuevo = Arbitro(
-                            firstName = nombre, lastName = "", gender = "X", 
-                            age = 30, federateNumber = numLicencia, club = "FEDERACIÓN",
-                            country = "ESP", modality = listOf(Repository.datos.arma)
-                        )
-                        Repository.datos.arbitros.add(nuevo)
-                        lista = Repository.datos.arbitros.toList()
-                        nombre = ""; licencia = ""
+        // SOLO EL ADMIN PUEDE AÑADIR ÁRBITROS
+        if (canEdit) {
+            Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = nombre, onValueChange = { nombre = it }, 
+                        label = { Text("Nombre del Árbitro") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = licencia, onValueChange = { licencia = it }, 
+                        label = { Text("Número de Licencia") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Button(onClick = {
+                        if (nombre.isNotBlank()) {
+                            val numLicencia = licencia.toIntOrNull() ?: (0..99999).random()
+                            val nuevo = Arbitro(
+                                firstName = nombre, lastName = "", gender = "X", 
+                                age = 30, federateNumber = numLicencia, club = "FEDERACIÓN",
+                                country = "ESP", modality = listOf(Repository.datos.arma)
+                            )
+                            Repository.datos.arbitros.add(nuevo)
+                            lista = Repository.datos.arbitros.toList()
+                            nombre = ""; licencia = ""
+                        }
+                    }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                        Text("AÑADIR ÁRBITRO")
                     }
-                }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                    Text("AÑADIR ÁRBITRO")
                 }
             }
+            Spacer(Modifier.height(16.dp))
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        LazyColumn {
+        LazyColumn(Modifier.weight(1f)) {
             items(lista) { a ->
                 Card(Modifier.padding(vertical = 4.dp).fillMaxWidth(), elevation = 2.dp) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -204,7 +207,7 @@ fun AjustesScreen() {
 }
 
 @Composable
-fun PoulesScreen() {
+fun PoulesScreen(isAdmin: Boolean = false) {
     var poules by remember { mutableStateOf(Repository.datos.poules.toList()) }
     var ranking by remember { mutableStateOf(Repository.calcularRanking()) }
 
@@ -212,18 +215,20 @@ fun PoulesScreen() {
         Text("Competición de Poules", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
 
-        Button(
-            onClick = {
-                Repository.generarPoules(4)
-                poules = Repository.datos.poules.toList()
-                ranking = Repository.calcularRanking()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) { 
-            Text("REGENERAR GRUPOS (POULES)") 
+        // SOLO EL ADMIN PUEDE GENERAR POULES
+        if (isAdmin) {
+            Button(
+                onClick = {
+                    Repository.generarPoules(4)
+                    poules = Repository.datos.poules.toList()
+                    ranking = Repository.calcularRanking()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) { 
+                Text("REGENERAR GRUPOS (POULES)") 
+            }
+            Spacer(Modifier.height(24.dp))
         }
-
-        Spacer(Modifier.height(24.dp))
 
         Text("Resultados y Cruces", style = MaterialTheme.typography.h6)
         poules.forEach { p ->
@@ -232,6 +237,7 @@ fun PoulesScreen() {
                     Text("POULE ${p.numero} - ${p.pista}", color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold)
                     Divider(Modifier.padding(vertical = 8.dp))
                     p.asaltos.forEach { asalto ->
+                        // Los resultados los puede introducir un Árbitro (user) o el Admin
                         RowAsalto(asalto, limite = 5) { ranking = Repository.calcularRanking() }
                     }
                 }
@@ -259,20 +265,22 @@ fun PoulesScreen() {
 }
 
 @Composable
-fun TablonScreen() {
+fun TablonScreen(isAdmin: Boolean = false) {
     var asaltos by remember { mutableStateOf(Repository.datos.cuadroEliminatorio.toList()) }
     Column(Modifier.padding(16.dp).fillMaxSize()) {
         Text("Tablón Eliminatorio", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
-        Button(onClick = {
-            Repository.generarTablon()
-            asaltos = Repository.datos.cuadroEliminatorio.toList()
-        }, modifier = Modifier.fillMaxWidth()) {
-            Text("GENERAR ÁRBOL FINAL")
+        // SOLO EL ADMIN PUEDE GENERAR EL TABLÓN
+        if (isAdmin) {
+            Button(onClick = {
+                Repository.generarTablon()
+                asaltos = Repository.datos.cuadroEliminatorio.toList()
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text("GENERAR ÁRBOL FINAL")
+            }
+            Spacer(Modifier.height(16.dp))
         }
-
-        Spacer(Modifier.height(16.dp))
 
         if (asaltos.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -280,7 +288,7 @@ fun TablonScreen() {
             }
         }
 
-        LazyColumn {
+        LazyColumn(Modifier.weight(1f)) {
             items(asaltos) { a ->
                 Card(Modifier.padding(vertical = 8.dp).fillMaxWidth(), elevation = 4.dp) {
                     Column(Modifier.padding(16.dp)) {
