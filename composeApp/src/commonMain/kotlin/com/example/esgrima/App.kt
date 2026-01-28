@@ -18,7 +18,7 @@ private val EsgrimaPrimary = Color(0xFF1A237E)
 @Composable
 fun App() {
     var isLoggedIn by remember { mutableStateOf(false) }
-    var userRole by remember { mutableStateOf("") } // "ADMIN" o "USER"
+    var userRole by remember { mutableStateOf("") } // "ADMIN" o "ARBITRO"
     var isRegisteringTirador by remember { mutableStateOf(false) }
     var showLoginFields by remember { mutableStateOf(false) }
     
@@ -46,11 +46,11 @@ fun App() {
 
                         if (!showLoginFields) {
                             Button(onClick = { showLoginFields = true }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                                Text("ENTRAR A LA APP")
+                                Text("ACCEDER AL SISTEMA")
                             }
                             Spacer(Modifier.height(16.dp))
                             OutlinedButton(onClick = { isRegisteringTirador = true }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                                Text("INSCRIPCIÓN PÚBLICA")
+                                Text("INSCRIPCIÓN TIRADORES")
                             }
                         } else {
                             // CAMPOS DE LOGIN
@@ -80,9 +80,9 @@ fun App() {
                                         isLoggedIn = true
                                         userRole = "ADMIN"
                                         showLoginFields = false
-                                    } else if (user == "user" && pass == "user") {
+                                    } else if (user == "arbitro" && pass == "arbitro") {
                                         isLoggedIn = true
-                                        userRole = "USER"
+                                        userRole = "ARBITRO"
                                         showLoginFields = false
                                     } else {
                                         loginError = true
@@ -97,7 +97,7 @@ fun App() {
                             }
                             
                             Spacer(Modifier.height(8.dp))
-                            Text("Admin: admin/admin | Usuario: user/user", style = MaterialTheme.typography.caption, color = Color.Gray)
+                            Text("Admin: admin/admin | Árbitro: arbitro/arbitro", style = MaterialTheme.typography.caption, color = Color.Gray)
                         }
                     }
                 }
@@ -107,7 +107,7 @@ fun App() {
                     topBar = {
                         TopAppBar(
                             title = { 
-                                val titulo = if (isRegisteringTirador) "Inscripción" else if (userRole == "ADMIN") "Esgrima Admin" else "Esgrima Usuario"
+                                val titulo = if (isRegisteringTirador) "Formulario Inscripción" else if (userRole == "ADMIN") "Esgrima Admin" else "Esgrima Árbitro"
                                 Text(titulo) 
                             },
                             actions = {
@@ -135,7 +135,6 @@ fun App() {
                                 BottomNavigationItem(selected = screen == "poules", onClick = { screen = "poules" }, icon = { Icon(Icons.Default.List, null) }, label = { Text("Poules") })
                                 BottomNavigationItem(selected = screen == "tablon", onClick = { screen = "tablon" }, icon = { Icon(Icons.Default.DateRange, null) }, label = { Text("Tablón") })
                                 
-                                // SOLO EL ADMIN VE LA PESTAÑA DE AJUSTES
                                 if (userRole == "ADMIN") {
                                     BottomNavigationItem(selected = screen == "ajustes", onClick = { screen = "ajustes" }, icon = { Icon(Icons.Default.Settings, null) }, label = { Text("Ajustes") })
                                 }
@@ -145,11 +144,11 @@ fun App() {
                 ) { padding ->
                     Box(Modifier.padding(padding).fillMaxSize()) {
                         when {
-                            isRegisteringTirador -> TiradoresScreen()
-                            screen == "tiradores" -> TiradoresScreen()
-                            screen == "arbitros" -> ArbitrosScreen()
-                            screen == "poules" -> PoulesScreen()
-                            screen == "tablon" -> TablonScreen()
+                            isRegisteringTirador -> TiradoresScreen(canEdit = true)
+                            screen == "tiradores" -> TiradoresScreen(canEdit = (userRole == "ADMIN"))
+                            screen == "arbitros" -> ArbitrosScreen(canEdit = (userRole == "ADMIN"))
+                            screen == "poules" -> PoulesScreen(isAdmin = (userRole == "ADMIN"))
+                            screen == "tablon" -> TablonScreen(isAdmin = (userRole == "ADMIN"))
                             screen == "ajustes" && userRole == "ADMIN" -> AjustesScreen()
                         }
                     }

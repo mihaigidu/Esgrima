@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,27 +28,26 @@ fun TiradoresScreen(canEdit: Boolean = true) {
 
     Column(Modifier.padding(16.dp).fillMaxSize()) {
         Text("Gestión de Tiradores", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-        Text("${lista.size} inscritos actualmente", color = Color.Gray)
+        Text("${lista.size} tiradores en el sistema", color = Color.Gray)
         
         Spacer(Modifier.height(16.dp))
         
-        // SOLO SE MUESTRA EL FORMULARIO SI TIENE PERMISOS (ADMIN O INSCRIPCIÓN PÚBLICA)
         if (canEdit) {
             Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
                 Column(Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = nombre, 
-                        onValueChange = { nombre = it }, 
-                        label = { Text("Nombre Completo") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = club, 
-                        onValueChange = { club = it }, 
-                        label = { Text("Club / Entidad") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Row(Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = nombre, onValueChange = { nombre = it }, 
+                            label = { Text("Nombre Completo") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        OutlinedTextField(
+                            value = club, onValueChange = { club = it }, 
+                            label = { Text("Club / Entidad") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
@@ -75,17 +75,21 @@ fun TiradoresScreen(canEdit: Boolean = true) {
 
         LazyColumn(Modifier.weight(1f)) {
             items(lista) { t ->
-                Card(Modifier.padding(vertical = 4.dp).fillMaxWidth(), elevation = 2.dp, shape = RoundedCornerShape(8.dp)) {
+                Card(Modifier.padding(vertical = 4.dp).fillMaxWidth(), elevation = 2.dp) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Surface(Modifier.size(40.dp), shape = RoundedCornerShape(20.dp), color = MaterialTheme.colors.primary.copy(alpha = 0.1f)) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text("🤺", fontSize = 20.sp)
-                            }
-                        }
+                        Text("🤺", fontSize = 20.sp)
                         Spacer(Modifier.width(16.dp))
-                        Column {
+                        Column(Modifier.weight(1f)) {
                             Text(t.nombreCompleto, fontWeight = FontWeight.Bold)
                             Text(t.club, style = MaterialTheme.typography.caption)
+                        }
+                        if (canEdit) {
+                            IconButton(onClick = {
+                                Repository.datos.tiradores.remove(t)
+                                lista = Repository.datos.tiradores.toList()
+                            }) {
+                                Icon(Icons.Default.Delete, "Borrar", tint = Color.Gray)
+                            }
                         }
                     }
                 }
@@ -104,30 +108,16 @@ fun ArbitrosScreen(canEdit: Boolean = true) {
         Text("Gestión de Árbitros", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
-        // SOLO EL ADMIN PUEDE AÑADIR ÁRBITROS
         if (canEdit) {
             Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
                 Column(Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = nombre, onValueChange = { nombre = it }, 
-                        label = { Text("Nombre del Árbitro") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = licencia, onValueChange = { licencia = it }, 
-                        label = { Text("Número de Licencia") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    OutlinedTextField(value = licencia, onValueChange = { licencia = it }, label = { Text("Licencia") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(12.dp))
                     Button(onClick = {
                         if (nombre.isNotBlank()) {
-                            val numLicencia = licencia.toIntOrNull() ?: (0..99999).random()
-                            val nuevo = Arbitro(
-                                firstName = nombre, lastName = "", gender = "X", 
-                                age = 30, federateNumber = numLicencia, club = "FEDERACIÓN",
-                                country = "ESP", modality = listOf(Repository.datos.arma)
-                            )
+                            val nuevo = Arbitro(nombre, "", "X", 30, licencia.toIntOrNull() ?: 0, "FED", "ESP", listOf(Repository.datos.arma))
                             Repository.datos.arbitros.add(nuevo)
                             lista = Repository.datos.arbitros.toList()
                             nombre = ""; licencia = ""
@@ -146,9 +136,17 @@ fun ArbitrosScreen(canEdit: Boolean = true) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("⚖️", fontSize = 24.sp)
                         Spacer(Modifier.width(16.dp))
-                        Column {
+                        Column(Modifier.weight(1f)) {
                             Text(a.nombreCompleto, fontWeight = FontWeight.Bold)
                             Text("Licencia: ${a.federateNumber}", style = MaterialTheme.typography.caption)
+                        }
+                        if (canEdit) {
+                            IconButton(onClick = {
+                                Repository.datos.arbitros.remove(a)
+                                lista = Repository.datos.arbitros.toList()
+                            }) {
+                                Icon(Icons.Default.Delete, null, tint = Color.Gray)
+                            }
                         }
                     }
                 }
@@ -178,29 +176,20 @@ fun AjustesScreen() {
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = lugar, onValueChange = { lugar = it; Repository.datos.lugar = it }, label = { Text("Lugar") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(value = fecha, onValueChange = { fecha = it; Repository.datos.fecha = it }, label = { Text("Fecha (AAAA-MM-DD)") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = fecha, onValueChange = { fecha = it; Repository.datos.fecha = it }, label = { Text("Fecha") }, modifier = Modifier.fillMaxWidth())
                 
                 Spacer(Modifier.height(16.dp))
-                Text("Arma de la competición", style = MaterialTheme.typography.subtitle2)
-                
+                Text("Arma", style = MaterialTheme.typography.subtitle2)
                 Box {
-                    OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text(Repository.datos.arma)
-                    }
+                    OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) { Text(Repository.datos.arma) }
                     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         armas.forEach { arma ->
-                            DropdownMenuItem(onClick = {
-                                Repository.datos.arma = arma
-                                expanded = false
-                            }) { Text(arma) }
+                            DropdownMenuItem(onClick = { Repository.datos.arma = arma; expanded = false }) { Text(arma) }
                         }
                     }
                 }
-                
                 Spacer(Modifier.height(24.dp))
-                Button(onClick = { Repository.guardar() }, modifier = Modifier.fillMaxWidth()) {
-                    Text("GUARDAR CONFIGURACIÓN")
-                }
+                Button(onClick = { Repository.guardar() }, modifier = Modifier.fillMaxWidth()) { Text("GUARDAR TODO") }
             }
         }
     }
@@ -210,34 +199,45 @@ fun AjustesScreen() {
 fun PoulesScreen(isAdmin: Boolean = false) {
     var poules by remember { mutableStateOf(Repository.datos.poules.toList()) }
     var ranking by remember { mutableStateOf(Repository.calcularRanking()) }
+    var numPistas by remember { mutableStateOf(4) }
 
     Column(Modifier.padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState())) {
-        Text("Competición de Poules", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+        Text("Fase de Poules", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
 
-        // SOLO EL ADMIN PUEDE GENERAR POULES
         if (isAdmin) {
-            Button(
-                onClick = {
-                    Repository.generarPoules(4)
-                    poules = Repository.datos.poules.toList()
-                    ranking = Repository.calcularRanking()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) { 
-                Text("REGENERAR GRUPOS (POULES)") 
+            Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Configuración de Grupos", fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Número de Pistas: $numPistas")
+                        Slider(
+                            value = numPistas.toFloat(),
+                            onValueChange = { numPistas = it.toInt() },
+                            valueRange = 1f..10f,
+                            steps = 8,
+                            modifier = Modifier.weight(1f).padding(horizontal = 16.dp)
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            Repository.generarPoules(numPistas)
+                            poules = Repository.datos.poules.toList()
+                            ranking = Repository.calcularRanking()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("GENERAR POULES") }
+                }
             }
             Spacer(Modifier.height(24.dp))
         }
 
-        Text("Resultados y Cruces", style = MaterialTheme.typography.h6)
+        Text("Resultados", style = MaterialTheme.typography.h6)
         poules.forEach { p ->
-            Card(Modifier.padding(vertical = 8.dp).fillMaxWidth(), elevation = 4.dp, shape = RoundedCornerShape(8.dp)) {
+            Card(Modifier.padding(vertical = 8.dp).fillMaxWidth(), elevation = 4.dp) {
                 Column(Modifier.padding(16.dp)) {
                     Text("POULE ${p.numero} - ${p.pista}", color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold)
-                    Divider(Modifier.padding(vertical = 8.dp))
                     p.asaltos.forEach { asalto ->
-                        // Los resultados los puede introducir un Árbitro (user) o el Admin
                         RowAsalto(asalto, limite = 5) { ranking = Repository.calcularRanking() }
                     }
                 }
@@ -245,17 +245,14 @@ fun PoulesScreen(isAdmin: Boolean = false) {
         }
 
         Spacer(Modifier.height(24.dp))
-        
         Text("Clasificación Provisional", style = MaterialTheme.typography.h6)
         Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(8.dp)) {
                 ranking.forEachIndexed { index, s ->
-                    Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.padding(8.dp)) {
                         Text("${index + 1}º", Modifier.width(30.dp), fontWeight = FontWeight.Bold)
-                        Column(Modifier.weight(1f)) {
-                            Text(s.tirador.nombreCompleto)
-                            Text("V/M: ${s.victorias} | Ind: ${s.indice}", style = MaterialTheme.typography.caption)
-                        }
+                        Text(s.tirador.nombreCompleto, Modifier.weight(1f))
+                        Text("${s.victorias}V - Ind: ${s.indice}")
                     }
                     if (index < ranking.size - 1) Divider()
                 }
@@ -271,34 +268,19 @@ fun TablonScreen(isAdmin: Boolean = false) {
         Text("Tablón Eliminatorio", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
-        // SOLO EL ADMIN PUEDE GENERAR EL TABLÓN
         if (isAdmin) {
             Button(onClick = {
                 Repository.generarTablon()
                 asaltos = Repository.datos.cuadroEliminatorio.toList()
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("GENERAR ÁRBOL FINAL")
-            }
+            }, modifier = Modifier.fillMaxWidth()) { Text("GENERAR CUADRO FINAL") }
             Spacer(Modifier.height(16.dp))
-        }
-
-        if (asaltos.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Finaliza primero las poules para generar el tablón.", color = Color.Gray)
-            }
         }
 
         LazyColumn(Modifier.weight(1f)) {
             items(asaltos) { a ->
                 Card(Modifier.padding(vertical = 8.dp).fillMaxWidth(), elevation = 4.dp) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(
-                            text = a.rondaEliminatoria?.name ?: "ELIMINATORIA", 
-                            color = MaterialTheme.colors.secondary, 
-                            fontWeight = FontWeight.Bold, 
-                            fontSize = 12.sp
-                        )
-                        Spacer(Modifier.height(8.dp))
+                        Text(a.rondaEliminatoria?.name ?: "ASALTO", color = MaterialTheme.colors.secondary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         RowAsalto(a, limite = 15) {}
                     }
                 }
@@ -312,37 +294,29 @@ fun RowAsalto(asalto: Asalto, limite: Int, onUpdate: () -> Unit) {
     var t1 by remember { mutableStateOf(asalto.tocados1.toString()) }
     var t2 by remember { mutableStateOf(asalto.tocados2.toString()) }
 
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(asalto.tirador1.nombreCompleto.split(" ").first(), Modifier.weight(1f), fontSize = 14.sp)
-
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(asalto.tirador1.nombreCompleto.split(" ").first(), Modifier.weight(1f))
         OutlinedTextField(
             value = t1,
             onValueChange = { 
-                t1 = it
-                asalto.tocados1 = it.toIntOrNull() ?: 0
+                t1 = it; asalto.tocados1 = it.toIntOrNull() ?: 0
                 if (asalto.tocados1 >= limite) asalto.finalizado = true
                 onUpdate() 
             },
-            modifier = Modifier.width(55.dp),
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            modifier = Modifier.width(50.dp),
+            singleLine = true
         )
-
-        Text(" vs ", Modifier.padding(horizontal = 4.dp), color = Color.Gray)
-
+        Text(" - ", Modifier.padding(horizontal = 4.dp))
         OutlinedTextField(
             value = t2,
             onValueChange = { 
-                t2 = it
-                asalto.tocados2 = it.toIntOrNull() ?: 0
+                t2 = it; asalto.tocados2 = it.toIntOrNull() ?: 0
                 if (asalto.tocados2 >= limite) asalto.finalizado = true
                 onUpdate() 
             },
-            modifier = Modifier.width(55.dp),
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            modifier = Modifier.width(50.dp),
+            singleLine = true
         )
-
-        Text(asalto.tirador2?.nombreCompleto?.split(" ")?.first() ?: "BYE", Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End, fontSize = 14.sp)
+        Text(asalto.tirador2?.nombreCompleto?.split(" ")?.first() ?: "BYE", Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
     }
 }
