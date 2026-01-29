@@ -295,7 +295,7 @@ fun RowAsalto(asalto: Asalto, limite: Int, onUpdate: () -> Unit) {
     var t2 by remember { mutableStateOf(asalto.tocados2.toString()) }
 
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(asalto.tirador1.nombreCompleto.split(" ").first(), Modifier.weight(1f))
+        Text(asalto.tirador1.nombreCompleto, Modifier.weight(1f))
         OutlinedTextField(
             value = t1,
             onValueChange = { 
@@ -317,6 +317,6 @@ fun RowAsalto(asalto: Asalto, limite: Int, onUpdate: () -> Unit) {
             modifier = Modifier.width(50.dp),
             singleLine = true
         )
-        Text(asalto.tirador2?.nombreCompleto?.split(" ")?.first() ?: "BYE", Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
+        Text(asalto.tirador2?.nombreCompleto ?: "BYE", Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
     }
 }
