@@ -33,8 +33,12 @@ object Repository {
         datos.cuadroEliminatorio.clear()
         if (datos.tiradores.isEmpty()) return
 
-        // Dividimos a los tiradores en el número de pistas/grupos indicados por el Admin
-        val grupos = datos.tiradores.shuffled().chunked(Math.max(1, datos.tiradores.size / numPistas + 1))
+        // CORRECCIÓN: Cálculo de tamaño de grupo redondeando hacia arriba correctamente
+        val n = datos.tiradores.size
+        val k = numPistas
+        val tamañoGrupo = (n + k - 1) / k 
+
+        val grupos = datos.tiradores.shuffled().chunked(Math.max(1, tamañoGrupo))
 
         grupos.forEachIndexed { index, miembros ->
             if (index < numPistas) {
