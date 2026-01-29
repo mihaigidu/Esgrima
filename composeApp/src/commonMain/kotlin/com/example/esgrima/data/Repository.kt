@@ -33,32 +33,35 @@ object Repository {
         datos.cuadroEliminatorio.clear()
         if (datos.tiradores.isEmpty()) return
 
-        // Reparto equitativo de tiradores por pista
-        val n = datos.tiradores.size
-        val k = numPistas
-        val tamanoGrupo = (n + k - 1) / k 
+        // Creamos una lista de listas (una para cada pista)
+        val numGrupos = minOf(numPistas, datos.tiradores.size / 2) // Mínimo 2 personas por poule
+        if (numGrupos <= 0) return
 
-        val grupos = datos.tiradores.shuffled().chunked(maxOf(1, tamanoGrupo))
+        val grupos = List(numGrupos) { mutableListOf<Tirador>() }
+        
+        // Repartimos los tiradores uno a uno en las pistas (estilo reparto de cartas)
+        datos.tiradores.shuffled().forEachIndexed { index, tirador ->
+            grupos[index % numGrupos].add(tirador)
+        }
 
         grupos.forEachIndexed { index, miembros ->
-            if (index < numPistas) {
-                val num = index + 1
-                val nuevaPoule = Poule(
-                    numero = num,
-                    pista = "Pista $num",
-                    arbitro = datos.arbitros.getOrNull(index % datos.arbitros.size),
-                    tiradores = miembros
-                )
-                for (i in miembros.indices) {
-                    for (j in i + 1 until miembros.size) {
-                        nuevaPoule.asaltos.add(Asalto(
-                            id = "P$num-${miembros[i].federateNumber}-${miembros[j].federateNumber}",
-                            tirador1 = miembros[i], tirador2 = miembros[j], esPoule = true
-                        ))
-                    }
+            val num = index + 1
+            val nuevaPoule = Poule(
+                numero = num,
+                pista = "Pista $num",
+                arbitro = datos.arbitros.getOrNull(index % datos.arbitros.size),
+                tiradores = miembros
+            )
+            // Generamos todos los emparejamientos dentro de la poule
+            for (i in miembros.indices) {
+                for (j in i + 1 until miembros.size) {
+                    nuevaPoule.asaltos.add(Asalto(
+                        id = "P$num-${miembros[i].federateNumber}-${miembros[j].federateNumber}",
+                        tirador1 = miembros[i], tirador2 = miembros[j], esPoule = true
+                    ))
                 }
-                datos.poules.add(nuevaPoule)
             }
+            datos.poules.add(nuevaPoule)
         }
     }
 
@@ -109,7 +112,7 @@ object Repository {
                 id = "E-${fase}-$i",
                 tirador1 = t1,
                 tirador2 = if (t2.firstName == "BYE") null else t2,
-                finalizado = (t2.firstName == "BYE"), // Si es BYE, ya está terminado
+                finalizado = (t2.firstName == "BYE"),
                 esPoule = false, 
                 rondaEliminatoria = fase
             ))
