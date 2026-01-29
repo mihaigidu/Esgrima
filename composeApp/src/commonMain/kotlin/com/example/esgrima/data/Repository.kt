@@ -33,12 +33,12 @@ object Repository {
         datos.cuadroEliminatorio.clear()
         if (datos.tiradores.isEmpty()) return
 
-        // CORRECCIÓN: Cálculo de tamaño de grupo redondeando hacia arriba correctamente
+        // Reparto equitativo de tiradores por pista
         val n = datos.tiradores.size
         val k = numPistas
-        val tamañoGrupo = (n + k - 1) / k 
+        val tamanoGrupo = (n + k - 1) / k 
 
-        val grupos = datos.tiradores.shuffled().chunked(Math.max(1, tamañoGrupo))
+        val grupos = datos.tiradores.shuffled().chunked(maxOf(1, tamanoGrupo))
 
         grupos.forEachIndexed { index, miembros ->
             if (index < numPistas) {
@@ -75,25 +75,43 @@ object Repository {
                 if (misPuntos > susPuntos) v++
             }
             Estadistica(t, v, misAsaltos.size, td, tr)
-        }.sortedWith(compareByDescending<Estadistica> { it.coeficiente }.thenByDescending { it.indice }.thenByDescending { it.td })
+        }.sortedWith(
+            compareByDescending<Estadistica> { it.coeficiente }
+                .thenByDescending { it.indice }
+                .thenByDescending { it.td }
+        )
     }
 
     fun generarTablon() {
         val ranking = calcularRanking().map { it.tirador }
         if (ranking.size < 2) return
         datos.cuadroEliminatorio.clear()
+        
         var tamano = 2
         while (tamano < ranking.size) tamano *= 2
-        val listaAjustada = ranking.toMutableList()
-        while (listaAjustada.size < tamano) listaAjustada.add(Tirador("BYE", "", "X", 0, 9999, "", "", "ESP"))
         
-        val fase = when(tamano) { 4 -> Fase.SEMIFINAL; 8 -> Fase.CUARTOS; 16 -> Fase.ELIMINATORIAS_16; else -> Fase.ELIMINATORIAS_32 }
+        val listaAjustada = ranking.toMutableList()
+        while (listaAjustada.size < tamano) {
+            listaAjustada.add(Tirador("BYE", "", "X", 0, 9999 + listaAjustada.size, "", "", "ESP"))
+        }
+        
+        val fase = when(tamano) { 
+            4 -> Fase.SEMIFINAL 
+            8 -> Fase.CUARTOS 
+            16 -> Fase.ELIMINATORIAS_16 
+            else -> Fase.ELIMINATORIAS_32 
+        }
+
         for (i in 0 until tamano / 2) {
+            val t1 = listaAjustada[i]
+            val t2 = listaAjustada[tamano - 1 - i]
             datos.cuadroEliminatorio.add(Asalto(
                 id = "E-${fase}-$i",
-                tirador1 = listaAjustada[i],
-                tirador2 = if (listaAjustada[tamano - 1 - i].firstName == "BYE") null else listaAjustada[tamano - 1 - i],
-                esPoule = false, rondaEliminatoria = fase
+                tirador1 = t1,
+                tirador2 = if (t2.firstName == "BYE") null else t2,
+                finalizado = (t2.firstName == "BYE"), // Si es BYE, ya está terminado
+                esPoule = false, 
+                rondaEliminatoria = fase
             ))
         }
     }
