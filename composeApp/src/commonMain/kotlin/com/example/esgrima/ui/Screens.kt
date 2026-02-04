@@ -340,7 +340,7 @@ fun AjustesScreen() {
 fun PoulesScreen(isAdmin: Boolean = false) {
     var poules by remember { mutableStateOf(Repository.datos.poules.toList()) }
     var ranking by remember { mutableStateOf(Repository.calcularRanking()) }
-    var numPistas by remember { mutableStateOf(4) }
+    var numPistasInput by remember { mutableStateOf("4") }
 
     Column(Modifier.padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState())) {
         Text("Fase de Poules", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
@@ -351,11 +351,29 @@ fun PoulesScreen(isAdmin: Boolean = false) {
                 Column(Modifier.padding(16.dp)) {
                     Text("Configuración de Pistas", fontWeight = FontWeight.Bold)
                     Text("El administrador decide el número de grupos según pistas disponibles.", style = MaterialTheme.typography.caption)
+                    Spacer(Modifier.height(8.dp))
+                    
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Pistas: $numPistas")
-                        Slider(value = numPistas.toFloat(), onValueChange = { numPistas = it.toInt() }, valueRange = 1f..20f, steps = 18, modifier = Modifier.weight(1f).padding(horizontal = 16.dp))
+                        OutlinedTextField(
+                            value = numPistasInput, 
+                            onValueChange = { numPistasInput = it.filter { char -> char.isDigit() } }, 
+                            label = { Text("Número de Pistas") },
+                            modifier = Modifier.width(150.dp),
+                            singleLine = true
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        Button(
+                            onClick = { 
+                                val num = numPistasInput.toIntOrNull() ?: 1
+                                if (num > 0) {
+                                    Repository.generarPoules(num)
+                                    poules = Repository.datos.poules.toList()
+                                    ranking = Repository.calcularRanking()
+                                }
+                            }, 
+                            modifier = Modifier.fillMaxWidth().height(56.dp)
+                        ) { Text("GENERAR POULES") }
                     }
-                    Button(onClick = { Repository.generarPoules(numPistas); poules = Repository.datos.poules.toList(); ranking = Repository.calcularRanking() }, modifier = Modifier.fillMaxWidth().height(48.dp)) { Text("GENERAR POULES") }
                 }
             }
             Spacer(Modifier.height(24.dp))
