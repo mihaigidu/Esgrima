@@ -85,9 +85,14 @@ object Repository {
         )
     }
 
-    fun generarTablon() {
-        val ranking = calcularRanking().map { it.tirador }
+    fun generarTablon(cantidadTiradores: Int) {
+        val rankingCompleto = calcularRanking().map { it.tirador }
+        if (rankingCompleto.isEmpty()) return
+        
+        // Tomamos solo los N primeros según se haya configurado
+        val ranking = rankingCompleto.take(cantidadTiradores)
         if (ranking.size < 2) return
+
         datos.cuadroEliminatorio.clear()
         
         var tamano = 2

@@ -450,12 +450,31 @@ fun PoulesScreen(isAdmin: Boolean = false) {
 @Composable
 fun TablonScreen(isAdmin: Boolean = false) {
     var asaltos by remember { mutableStateOf(Repository.datos.cuadroEliminatorio.toList()) }
+    var numClasificados by remember { mutableStateOf(Repository.datos.tiradores.size.toString()) }
+
     Column(Modifier.padding(16.dp).fillMaxSize()) {
         Text("Tablón Eliminatorio", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
         if (isAdmin) {
-            Button(onClick = { Repository.generarTablon(); asaltos = Repository.datos.cuadroEliminatorio.toList() }, modifier = Modifier.fillMaxWidth().height(48.dp)) { Text("GENERAR CUADRO FINAL") }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = numClasificados, 
+                    onValueChange = { numClasificados = it.filter { c -> c.isDigit() } }, 
+                    label = { Text("Nº Clasificados") },
+                    modifier = Modifier.width(120.dp),
+                    singleLine = true
+                )
+                Spacer(Modifier.width(16.dp))
+                Button(
+                    onClick = { 
+                        val num = numClasificados.toIntOrNull() ?: Repository.datos.tiradores.size
+                        Repository.generarTablon(num)
+                        asaltos = Repository.datos.cuadroEliminatorio.toList() 
+                    }, 
+                    modifier = Modifier.fillMaxWidth().height(56.dp)
+                ) { Text("GENERAR CUADRO FINAL") }
+            }
             Spacer(Modifier.height(16.dp))
         }
 
