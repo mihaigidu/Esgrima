@@ -1,5 +1,6 @@
 package com.example.esgrima.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,9 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +23,7 @@ import com.example.esgrima.model.*
 
 // Lista común de federaciones para toda la app
 private val LISTA_PAISES = listOf(
-    "ESP", "FRA", "ITA", "GER", "POR", "GBR", "USA", "HUN", "UKR", 
+    "ESPAÑA", "FRANCIA", "ITALIA", "GERMANY", "PORTUGAL", "GBR", "USA", "HUN", "UKR",
     "CHN", "JPN", "CAN", "MEX", "ARG", "BRA", "CHI", "COL", "ROU"
 ).sorted()
 
@@ -39,99 +38,119 @@ fun TiradoresScreen(canEdit: Boolean = true) {
     var pais by remember { mutableStateOf("ESP") }
     var paisExpanded by remember { mutableStateOf(false) }
     
+    var isFormVisible by remember { mutableStateOf(false) }
     var lista by remember { mutableStateOf(Repository.datos.tiradores.toList()) }
 
     Column(Modifier.padding(16.dp).fillMaxSize()) {
-        Text("Inscripción de Tiradores", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-        Text("${lista.size} participantes inscritos en ${Repository.datos.arma}", color = Color.Gray)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("Inscripción de Tiradores", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                Text("${lista.size} participantes inscritos en ${Repository.datos.arma}", color = Color.Gray)
+            }
+            if (canEdit) {
+                IconButton(onClick = { isFormVisible = !isFormVisible }) {
+                    Icon(
+                        if (isFormVisible) Icons.Default.KeyboardArrowUp else Icons.Default.Add,
+                        contentDescription = if (isFormVisible) "Ocultar formulario" else "Mostrar formulario",
+                        tint = MaterialTheme.colors.primary
+                    )
+                }
+            }
+        }
         
         Spacer(Modifier.height(16.dp))
         
         if (canEdit) {
-            Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Datos del Tirador", style = MaterialTheme.typography.subtitle2, color = MaterialTheme.colors.primary)
-                    Spacer(Modifier.height(12.dp))
-                    
-                    Row(Modifier.fillMaxWidth()) {
-                        OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.weight(1f), singleLine = true)
-                        Spacer(Modifier.width(8.dp))
-                        OutlinedTextField(value = apellidos, onValueChange = { apellidos = it }, label = { Text("Apellidos") }, modifier = Modifier.weight(1f), singleLine = true)
-                    }
-                    
-                    Spacer(Modifier.height(8.dp))
-                    
-                    Row(Modifier.fillMaxWidth()) {
-                        OutlinedTextField(value = club, onValueChange = { club = it }, label = { Text("Club") }, modifier = Modifier.weight(1f), singleLine = true)
-                        Spacer(Modifier.width(8.dp))
-                        OutlinedTextField(value = licencia, onValueChange = { licencia = it }, label = { Text("Nº Licencia") }, modifier = Modifier.weight(1f), singleLine = true)
-                    }
-                    
-                    Spacer(Modifier.height(8.dp))
-                    
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(value = edad, onValueChange = { edad = it }, label = { Text("Edad") }, modifier = Modifier.weight(0.5f), singleLine = true)
-                        Spacer(Modifier.width(8.dp))
+            AnimatedVisibility(visible = isFormVisible) {
+                Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp), modifier = Modifier.padding(bottom = 16.dp)) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Datos del Tirador", style = MaterialTheme.typography.subtitle2, color = MaterialTheme.colors.primary)
+                        Spacer(Modifier.height(12.dp))
                         
-                        Box(modifier = Modifier.weight(1f)) {
-                            OutlinedButton(
-                                onClick = { paisExpanded = true }, 
-                                modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 4.dp),
-                                shape = RoundedCornerShape(4.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-                            ) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text(pais)
-                                    Icon(Icons.Default.ArrowDropDown, null)
+                        Row(Modifier.fillMaxWidth()) {
+                            OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.weight(1f), singleLine = true)
+                            Spacer(Modifier.width(8.dp))
+                            OutlinedTextField(value = apellidos, onValueChange = { apellidos = it }, label = { Text("Apellidos") }, modifier = Modifier.weight(1f), singleLine = true)
+                        }
+                        
+                        Spacer(Modifier.height(8.dp))
+                        
+                        Row(Modifier.fillMaxWidth()) {
+                            OutlinedTextField(value = club, onValueChange = { club = it }, label = { Text("Club") }, modifier = Modifier.weight(1f), singleLine = true)
+                            Spacer(Modifier.width(8.dp))
+                            OutlinedTextField(value = licencia, onValueChange = { licencia = it }, label = { Text("Nº Licencia") }, modifier = Modifier.weight(1f), singleLine = true)
+                        }
+                        
+                        Spacer(Modifier.height(8.dp))
+                        
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(value = edad, onValueChange = { edad = it }, label = { Text("Edad") }, modifier = Modifier.weight(0.5f), singleLine = true)
+                            Spacer(Modifier.width(8.dp))
+                            
+                            Box(modifier = Modifier.weight(1f)) {
+                                OutlinedButton(
+                                    onClick = { paisExpanded = true }, 
+                                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 4.dp),
+                                    shape = RoundedCornerShape(4.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                                ) {
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                        Text(pais)
+                                        Icon(Icons.Default.ArrowDropDown, null)
+                                    }
+                                }
+                                DropdownMenu(expanded = paisExpanded, onDismissRequest = { paisExpanded = false }) {
+                                    LISTA_PAISES.forEach { p -> DropdownMenuItem(onClick = { pais = p; paisExpanded = false }) { Text(p) } }
                                 }
                             }
-                            DropdownMenu(expanded = paisExpanded, onDismissRequest = { paisExpanded = false }) {
-                                LISTA_PAISES.forEach { p -> DropdownMenuItem(onClick = { pais = p; paisExpanded = false }) { Text(p) } }
+                            
+                            Spacer(Modifier.width(16.dp))
+                            
+                            Column {
+                                Text("Género", style = MaterialTheme.typography.caption)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "M" }) {
+                                        RadioButton(selected = genero == "M", onClick = { genero = "M" })
+                                        Text("M", fontSize = 12.sp)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "F" }) {
+                                        RadioButton(selected = genero == "F", onClick = { genero = "F" })
+                                        Text("F", fontSize = 12.sp)
+                                    }
+                                }
                             }
                         }
                         
-                        Spacer(Modifier.width(16.dp))
+                        Spacer(Modifier.height(16.dp))
                         
-                        Column {
-                            Text("Género", style = MaterialTheme.typography.caption)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "M" }) {
-                                    RadioButton(selected = genero == "M", onClick = { genero = "M" })
-                                    Text("M", fontSize = 12.sp)
+                        Button(
+                            onClick = {
+                                if (nombre.isNotBlank() && apellidos.isNotBlank()) {
+                                    val nuevo = Tirador(
+                                        firstName = nombre, lastName = apellidos, club = club, gender = genero, 
+                                        age = edad.toIntOrNull() ?: 18, 
+                                        federateNumber = licencia.toIntOrNull() ?: (0..999999).random(),
+                                        country = pais, modality = Repository.datos.arma
+                                    )
+                                    Repository.datos.tiradores.add(nuevo)
+                                    lista = Repository.datos.tiradores.toList()
+                                    nombre = ""; apellidos = ""; club = ""; licencia = ""; edad = ""; pais = "ESP"
+                                    isFormVisible = false // Ocultar tras añadir
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "F" }) {
-                                    RadioButton(selected = genero == "F", onClick = { genero = "F" })
-                                    Text("F", fontSize = 12.sp)
-                                }
-                            }
+                            },
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) {
+                            Icon(Icons.Default.Add, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("CONFIRMAR INSCRIPCIÓN", fontWeight = FontWeight.Bold)
                         }
-                    }
-                    
-                    Spacer(Modifier.height(16.dp))
-                    
-                    Button(
-                        onClick = {
-                            if (nombre.isNotBlank() && apellidos.isNotBlank()) {
-                                val nuevo = Tirador(
-                                    firstName = nombre, lastName = apellidos, club = club, gender = genero, 
-                                    age = edad.toIntOrNull() ?: 18, 
-                                    federateNumber = licencia.toIntOrNull() ?: (0..999999).random(),
-                                    country = pais, modality = Repository.datos.arma
-                                )
-                                Repository.datos.tiradores.add(nuevo)
-                                lista = Repository.datos.tiradores.toList()
-                                nombre = ""; apellidos = ""; club = ""; licencia = ""; edad = ""; pais = "ESP"
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(48.dp)
-                    ) {
-                        Icon(Icons.Default.Add, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("CONFIRMAR INSCRIPCIÓN", fontWeight = FontWeight.Bold)
                     }
                 }
             }
-            Spacer(Modifier.height(16.dp))
         }
 
         Text("Lista de Inscritos", style = MaterialTheme.typography.h6)
@@ -170,91 +189,112 @@ fun ArbitrosScreen(canEdit: Boolean = true) {
     var pais by remember { mutableStateOf("ESP") }
     var paisExpanded by remember { mutableStateOf(false) }
     
+    var isFormVisible by remember { mutableStateOf(false) }
     var lista by remember { mutableStateOf(Repository.datos.arbitros.toList()) }
 
     Column(Modifier.padding(16.dp).fillMaxSize()) {
-        Text("Gestión de Árbitros", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-        Text("${lista.size} técnicos registrados", color = Color.Gray)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("Gestión de Árbitros", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                Text("${lista.size} técnicos registrados", color = Color.Gray)
+            }
+            if (canEdit) {
+                IconButton(onClick = { isFormVisible = !isFormVisible }) {
+                    Icon(
+                        if (isFormVisible) Icons.Default.KeyboardArrowUp else Icons.Default.Add,
+                        contentDescription = if (isFormVisible) "Ocultar formulario" else "Mostrar formulario",
+                        tint = MaterialTheme.colors.primary
+                    )
+                }
+            }
+        }
+        
         Spacer(Modifier.height(16.dp))
 
         if (canEdit) {
-            Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Datos del Árbitro", style = MaterialTheme.typography.subtitle2, color = MaterialTheme.colors.primary)
-                    Spacer(Modifier.height(12.dp))
-                    
-                    Row(Modifier.fillMaxWidth()) {
-                        OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.weight(1f), singleLine = true)
-                        Spacer(Modifier.width(8.dp))
-                        OutlinedTextField(value = apellidos, onValueChange = { apellidos = it }, label = { Text("Apellidos") }, modifier = Modifier.weight(1f), singleLine = true)
-                    }
-                    
-                    Spacer(Modifier.height(8.dp))
-                    
-                    Row(Modifier.fillMaxWidth()) {
-                        OutlinedTextField(value = club, onValueChange = { club = it }, label = { Text("Comité / Club") }, modifier = Modifier.weight(1f), singleLine = true)
-                        Spacer(Modifier.width(8.dp))
-                        OutlinedTextField(value = licencia, onValueChange = { licencia = it }, label = { Text("Nº Licencia") }, modifier = Modifier.weight(1f), singleLine = true)
-                    }
-                    
-                    Spacer(Modifier.height(8.dp))
-                    
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(value = edad, onValueChange = { edad = it }, label = { Text("Edad") }, modifier = Modifier.weight(0.4f), singleLine = true)
-                        Spacer(Modifier.width(8.dp))
+            AnimatedVisibility(visible = isFormVisible) {
+                Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp), modifier = Modifier.padding(bottom = 16.dp)) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Datos del Árbitro", style = MaterialTheme.typography.subtitle2, color = MaterialTheme.colors.primary)
+                        Spacer(Modifier.height(12.dp))
                         
-                        Box(modifier = Modifier.weight(0.8f)) {
-                            OutlinedButton(
-                                onClick = { paisExpanded = true }, 
-                                modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 4.dp),
-                                shape = RoundedCornerShape(4.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
-                            ) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text(pais)
-                                    Icon(Icons.Default.ArrowDropDown, null)
+                        Row(Modifier.fillMaxWidth()) {
+                            OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.weight(1f), singleLine = true)
+                            Spacer(Modifier.width(8.dp))
+                            OutlinedTextField(value = apellidos, onValueChange = { apellidos = it }, label = { Text("Apellidos") }, modifier = Modifier.weight(1f), singleLine = true)
+                        }
+                        
+                        Spacer(Modifier.height(8.dp))
+                        
+                        Row(Modifier.fillMaxWidth()) {
+                            OutlinedTextField(value = club, onValueChange = { club = it }, label = { Text("Comité / Club") }, modifier = Modifier.weight(1f), singleLine = true)
+                            Spacer(Modifier.width(8.dp))
+                            OutlinedTextField(value = licencia, onValueChange = { licencia = it }, label = { Text("Nº Licencia") }, modifier = Modifier.weight(1f), singleLine = true)
+                        }
+                        
+                        Spacer(Modifier.height(8.dp))
+                        
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(value = edad, onValueChange = { edad = it }, label = { Text("Edad") }, modifier = Modifier.weight(0.4f), singleLine = true)
+                            Spacer(Modifier.width(8.dp))
+                            
+                            Box(modifier = Modifier.weight(0.8f)) {
+                                OutlinedButton(
+                                    onClick = { paisExpanded = true }, 
+                                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 4.dp),
+                                    shape = RoundedCornerShape(4.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
+                                ) {
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                        Text(pais)
+                                        Icon(Icons.Default.ArrowDropDown, null)
+                                    }
+                                }
+                                DropdownMenu(expanded = paisExpanded, onDismissRequest = { paisExpanded = false }) {
+                                    LISTA_PAISES.forEach { p -> DropdownMenuItem(onClick = { pais = p; paisExpanded = false }) { Text(p) } }
                                 }
                             }
-                            DropdownMenu(expanded = paisExpanded, onDismissRequest = { paisExpanded = false }) {
-                                LISTA_PAISES.forEach { p -> DropdownMenuItem(onClick = { pais = p; paisExpanded = false }) { Text(p) } }
+                            
+                            Spacer(Modifier.width(12.dp))
+                            
+                            Column {
+                                Text("Género", style = MaterialTheme.typography.caption)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "M" }) {
+                                        RadioButton(selected = genero == "M", onClick = { genero = "M" })
+                                        Text("M", fontSize = 12.sp)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "F" }) {
+                                        RadioButton(selected = genero == "F", onClick = { genero = "F" })
+                                        Text("F", fontSize = 12.sp)
+                                    }
+                                }
                             }
                         }
                         
-                        Spacer(Modifier.width(12.dp))
-                        
-                        Column {
-                            Text("Género", style = MaterialTheme.typography.caption)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "M" }) {
-                                    RadioButton(selected = genero == "M", onClick = { genero = "M" })
-                                    Text("M", fontSize = 12.sp)
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { genero = "F" }) {
-                                    RadioButton(selected = genero == "F", onClick = { genero = "F" })
-                                    Text("F", fontSize = 12.sp)
-                                }
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = {
+                            if (nombre.isNotBlank() && apellidos.isNotBlank()) {
+                                val nuevo = Arbitro(
+                                    firstName = nombre, lastName = apellidos, gender = genero, 
+                                    age = edad.toIntOrNull() ?: 30, federateNumber = licencia.toIntOrNull() ?: 0, 
+                                    club = club, country = pais, modality = listOf(Repository.datos.arma)
+                                )
+                                Repository.datos.arbitros.add(nuevo)
+                                lista = Repository.datos.arbitros.toList()
+                                nombre = ""; apellidos = ""; club = ""; licencia = ""; edad = ""
+                                isFormVisible = false // Ocultar tras añadir
                             }
+                        }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                            Text("REGISTRAR ÁRBITRO", fontWeight = FontWeight.Bold)
                         }
-                    }
-                    
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = {
-                        if (nombre.isNotBlank() && apellidos.isNotBlank()) {
-                            val nuevo = Arbitro(
-                                firstName = nombre, lastName = apellidos, gender = genero, 
-                                age = edad.toIntOrNull() ?: 30, federateNumber = licencia.toIntOrNull() ?: 0, 
-                                club = club, country = pais, modality = listOf(Repository.datos.arma)
-                            )
-                            Repository.datos.arbitros.add(nuevo)
-                            lista = Repository.datos.arbitros.toList()
-                            nombre = ""; apellidos = ""; club = ""; licencia = ""; edad = ""
-                        }
-                    }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                        Text("REGISTRAR ÁRBITRO", fontWeight = FontWeight.Bold)
                     }
                 }
             }
-            Spacer(Modifier.height(16.dp))
         }
 
         LazyColumn(Modifier.weight(1f)) {
