@@ -330,7 +330,7 @@ fun AjustesScreen() {
     var expanded by remember { mutableStateOf(false) }
 
     Column(Modifier.padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState())) {
-        Text("Configuración de la Competición", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+        Text("Datos de la Competición", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
         Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp)) {
@@ -389,7 +389,7 @@ fun PoulesScreen(isAdmin: Boolean = false) {
         if (isAdmin) {
             Card(elevation = 4.dp, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Configuración de Pistas", fontWeight = FontWeight.Bold)
+                    Text("Datos de Pistas", fontWeight = FontWeight.Bold)
                     Text("El administrador decide el número de grupos según pistas disponibles.", style = MaterialTheme.typography.caption)
                     Spacer(Modifier.height(8.dp))
                     
