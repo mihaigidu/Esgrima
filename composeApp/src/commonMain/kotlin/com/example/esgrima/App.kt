@@ -18,8 +18,7 @@ private val EsgrimaPrimary = Color(0xFF1A237E)
 @Composable
 fun App() {
     var isLoggedIn by remember { mutableStateOf(false) }
-    var userRole by remember { mutableStateOf("") } // "ADMIN" o "ARBITRO"
-    var isRegisteringTirador by remember { mutableStateOf(false) }
+    var userRole by remember { mutableStateOf("") } // "ADMIN", "ARBITRO" o "USER"
     var showLoginFields by remember { mutableStateOf(false) }
     
     var user by remember { mutableStateOf("") }
@@ -33,7 +32,7 @@ fun App() {
     MaterialTheme(colors = lightColors(primary = EsgrimaPrimary)) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
             
-            if (!isLoggedIn && !isRegisteringTirador) {
+            if (!isLoggedIn) {
                 // PANTALLA DE INICIO / LOGIN
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(
@@ -46,14 +45,17 @@ fun App() {
 
                         if (!showLoginFields) {
                             Button(onClick = { showLoginFields = true }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                                Text("ACCEDER AL SISTEMA")
+                                Text("ACCESO GESTIÓN")
                             }
                             Spacer(Modifier.height(16.dp))
-                            OutlinedButton(onClick = { isRegisteringTirador = true }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                                Text("INSCRIPCIÓN TIRADORES")
+                            OutlinedButton(onClick = { showLoginFields = true }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                                Text("LISTA DE TIRADORES")
                             }
                         } else {
                             // CAMPOS DE LOGIN
+                            Text("Identifíquese para continuar", style = MaterialTheme.typography.subtitle1)
+                            Spacer(Modifier.height(16.dp))
+                            
                             OutlinedTextField(
                                 value = user, 
                                 onValueChange = { user = it; loginError = false }, 
@@ -84,6 +86,10 @@ fun App() {
                                         isLoggedIn = true
                                         userRole = "ARBITRO"
                                         showLoginFields = false
+                                    } else if (user == "user" && pass == "user") {
+                                        isLoggedIn = true
+                                        userRole = "USER"
+                                        showLoginFields = false
                                     } else {
                                         loginError = true
                                     }
@@ -96,8 +102,9 @@ fun App() {
                                 Text("Volver")
                             }
                             
-                            Spacer(Modifier.height(8.dp))
-                            Text("Admin: admin/admin | Árbitro: arbitro/arbitro", style = MaterialTheme.typography.caption, color = Color.Gray)
+                            Spacer(Modifier.height(16.dp))
+                            Text("Consultas: user / user", style = MaterialTheme.typography.caption, color = Color.Gray)
+                            Text("Gestión: admin / admin o arbitro / arbitro", style = MaterialTheme.typography.caption, color = Color.Gray)
                         }
                     }
                 }
@@ -107,28 +114,28 @@ fun App() {
                     topBar = {
                         TopAppBar(
                             title = { 
-                                val titulo = if (isRegisteringTirador) "Formulario Inscripción" else if (userRole == "ADMIN") "Esgrima Admin" else "Esgrima Árbitro"
+                                val titulo = when (userRole) {
+                                    "ADMIN" -> "Esgrima Admin"
+                                    "ARBITRO" -> "Esgrima Árbitro"
+                                    else -> "Lista de Tiradores"
+                                }
                                 Text(titulo) 
                             },
                             actions = {
-                                if (isLoggedIn) {
-                                    if (userRole == "ADMIN") {
-                                        IconButton(onClick = { Repository.guardar() }) { Icon(Icons.Default.Check, null) }
-                                    }
-                                    IconButton(onClick = { 
-                                        isLoggedIn = false
-                                        user = ""; pass = ""
-                                        userRole = ""
-                                        screen = "tiradores" 
-                                    }) { Icon(Icons.Default.ExitToApp, null) }
-                                } else {
-                                    IconButton(onClick = { isRegisteringTirador = false }) { Icon(Icons.Default.Close, null) }
+                                if (userRole == "ADMIN") {
+                                    IconButton(onClick = { Repository.guardar() }) { Icon(Icons.Default.Check, null) }
                                 }
+                                IconButton(onClick = { 
+                                    isLoggedIn = false
+                                    user = ""; pass = ""
+                                    userRole = ""
+                                    screen = "tiradores" 
+                                }) { Icon(Icons.Default.ExitToApp, null) }
                             }
                         )
                     },
                     bottomBar = {
-                        if (isLoggedIn) {
+                        if (userRole != "USER") {
                             BottomNavigation {
                                 BottomNavigationItem(selected = screen == "tiradores", onClick = { screen = "tiradores" }, icon = { Icon(Icons.Default.Person, null) }, label = { Text("Tiradores") })
                                 BottomNavigationItem(selected = screen == "arbitros", onClick = { screen = "arbitros" }, icon = { Icon(Icons.Default.Face, null) }, label = { Text("Árbitros") })
@@ -144,7 +151,6 @@ fun App() {
                 ) { padding ->
                     Box(Modifier.padding(padding).fillMaxSize()) {
                         when {
-                            isRegisteringTirador -> TiradoresScreen(canEdit = true)
                             screen == "tiradores" -> TiradoresScreen(canEdit = (userRole == "ADMIN"))
                             screen == "arbitros" -> ArbitrosScreen(canEdit = (userRole == "ADMIN"))
                             screen == "poules" -> PoulesScreen(isAdmin = (userRole == "ADMIN"))

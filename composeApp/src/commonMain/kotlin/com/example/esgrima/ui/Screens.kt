@@ -48,7 +48,7 @@ fun TiradoresScreen(canEdit: Boolean = true) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("Inscripción de Tiradores", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                Text("Lista de Tiradores", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
                 Text("${lista.size} participantes inscritos en ${Repository.datos.arma}", color = Color.Gray)
             }
             if (canEdit) {
@@ -153,7 +153,6 @@ fun TiradoresScreen(canEdit: Boolean = true) {
             }
         }
 
-        Text("Lista de Inscritos", style = MaterialTheme.typography.h6)
         LazyColumn(Modifier.weight(1f)) {
             items(lista) { t ->
                 Card(Modifier.padding(vertical = 4.dp).fillMaxWidth(), elevation = 2.dp) {
